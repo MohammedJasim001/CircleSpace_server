@@ -1,9 +1,10 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes'
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import authRoutes from './routes/authRoutes'
+import postRoutes from './routes/postRoutes'
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ mongoose.connect(process.env.MONGO_URI || '')
   .catch(err => console.log('MongoDB connection error:', err));
 
 app.use('/api/user', authRoutes);
+app.use('/api/user', postRoutes)
 
 
 app.listen(port, () => {

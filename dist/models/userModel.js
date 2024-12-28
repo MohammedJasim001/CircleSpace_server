@@ -26,6 +26,10 @@ const userSchema = new mongoose_1.default.Schema({
     profileImage: {
         type: String,
     },
+    bio: {
+        type: String,
+        default: "",
+    },
     otp: {
         type: Number,
         default: null
@@ -45,20 +49,24 @@ const userSchema = new mongoose_1.default.Schema({
         type: Boolean,
         default: false
     },
-    followers: [{
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'User',
-        }],
-    following: [{
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'User',
-        }],
-    posts: [{
-            type: mongoose_1.default.Schema.Types.ObjectId,
-            ref: 'Post'
-        }],
+    followers: {
+        type: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
+        default: [],
+    },
+    following: {
+        type: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "User" }],
+        default: [],
+    },
+    posts: {
+        type: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Post" }],
+        default: [],
+    },
     likedPosts: {
         type: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Post" }],
+        default: [],
+    },
+    comments: {
+        type: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Comment" }],
         default: [],
     },
 }, { timestamps: true });

@@ -6,6 +6,7 @@ export interface UserI  extends Document{
     email:string,
     password:string,
     profileImage:string,
+    bio?:string
     otp:number | undefined,
     isVerified:boolean,
     otpExpire:number | undefined,
@@ -15,6 +16,7 @@ export interface UserI  extends Document{
     followers: mongoose.Types.ObjectId[];
     following: mongoose.Types.ObjectId[];
     likedPosts?: mongoose.Types.ObjectId[];
+    comments?: mongoose.Types.ObjectId[];
 }
 
 const userSchema = new mongoose.Schema<UserI>({
@@ -39,6 +41,10 @@ const userSchema = new mongoose.Schema<UserI>({
         type:String,
         
     },
+    bio: {
+        type: String,
+        default: "",
+      },
     otp:{
         type:Number,
         default:null
@@ -59,22 +65,26 @@ const userSchema = new mongoose.Schema<UserI>({
         type:Boolean,
         default:false
     },
-    followers: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', 
-      }],
-      following: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',  
-      }],
-    posts:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Post'
-    }],
+    followers: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        default: [],
+    },
+    following: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        default: [],
+    },
+    posts: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+        default: [],
+    },
     likedPosts: {
         type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
         default: [],
-      },
+    },
+      comments: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
+        default: [],
+    },
 },{timestamps:true})
 
 export const User:Model<UserI> = mongoose.model<UserI>('User',userSchema)
