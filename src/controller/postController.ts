@@ -77,14 +77,14 @@ export const getPost = async(req:Request, res:Response):Promise<any> =>{
 
     const posts = await Post.find()
     .populate("author", "userName profileImage")
-    .sort({ createdAt: -1 });
-    // .populate({
-    //   path: "comments",
-    //   populate: [
-    //     { path: "author", select: "userName profilePicture" },
+    .sort({ createdAt: -1 })
+    .populate({
+      path: "comments",
+      populate: [
+        { path: "author", select: "userName profileImage" },
         
-    //   ],
-    // });
+      ],
+    });
     if(!posts){
         return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND,message:'posts not fond'})
     }

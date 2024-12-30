@@ -5,6 +5,8 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes'
 import postRoutes from './routes/postRoutes'
+import commentRoutes from './routes/commentRoutes'
+import userRoutes from './routes/userRoutes'
 
 dotenv.config();
 
@@ -24,6 +26,8 @@ mongoose.connect(process.env.MONGO_URI || '')
 
 app.use('/api/user', authRoutes);
 app.use('/api/user', postRoutes)
+app.use('/api/user',commentRoutes)
+app.use('/api/user',userRoutes)
 
 
 app.listen(port, () => {

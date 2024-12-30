@@ -106,13 +106,13 @@ exports.createPost = createPost;
 const getPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const posts = yield postModel_1.default.find()
         .populate("author", "userName profileImage")
-        .sort({ createdAt: -1 });
-    // .populate({
-    //   path: "comments",
-    //   populate: [
-    //     { path: "author", select: "userName profilePicture" },
-    //   ],
-    // });
+        .sort({ createdAt: -1 })
+        .populate({
+        path: "comments",
+        populate: [
+            { path: "author", select: "userName profileImage" },
+        ],
+    });
     if (!posts) {
         return res.status(constat_1.HttpStatusCode.NOT_FOUND).json({ status: constat_1.HttpStatusCode.NOT_FOUND, message: 'posts not fond' });
     }

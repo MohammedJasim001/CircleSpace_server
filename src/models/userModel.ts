@@ -17,6 +17,7 @@ export interface UserI  extends Document{
     following: mongoose.Types.ObjectId[];
     likedPosts?: mongoose.Types.ObjectId[];
     comments?: mongoose.Types.ObjectId[];
+    saved?: mongoose.Types.ObjectId[];
 }
 
 const userSchema = new mongoose.Schema<UserI>({
@@ -85,6 +86,10 @@ const userSchema = new mongoose.Schema<UserI>({
         type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
         default: [],
     },
+    saved: {
+        type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }], // Add saved field
+        default: [],
+      },
 },{timestamps:true})
 
 export const User:Model<UserI> = mongoose.model<UserI>('User',userSchema)
