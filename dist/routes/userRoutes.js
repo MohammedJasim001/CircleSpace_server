@@ -8,5 +8,6 @@ const userController_1 = require("../controller/userController");
 const router = express_1.default.Router();
 router.get('/profile/:id', userController_1.profile);
 router.get('/suggestions/:id', userController_1.suggestionProfiles);
-router.get('/user/:id');
+// router.get('/user/:id')
+router.post('/follow', userController_1.toggleFollow);
 exports.default = router;

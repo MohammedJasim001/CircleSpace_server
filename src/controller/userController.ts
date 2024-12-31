@@ -51,7 +51,9 @@ export const profile = async (
         },
       ],
     },
-  ]);
+  ])
+    .populate('followers')  // Populate followers
+    .populate('following');
 
   if (!profile) {
     return res.status(404).json({ message: "User not found" });
@@ -63,7 +65,7 @@ export const profile = async (
   });
 };
 
-
+//suggested profile
 export const suggestionProfiles = async (
     req: Request,
     res: Response
@@ -100,4 +102,55 @@ export const suggestionProfiles = async (
         return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND, message: 'User not found' });
     }
     return res.json(user);
+};
+
+
+//togglefollow
+export const toggleFollow = async (
+  req: Request,
+  res: Response
+): Promise<Response | any> => {
+  const { userId, targetId } = req.body;
+  if (
+    !mongoose.isValidObjectId(userId) ||
+    !mongoose.isValidObjectId(targetId)
+  ) {
+    return res.status(400).json({ message: "Invalid ID format" });
+  }
+
+  if (userId === targetId) {
+    return res
+      .status(400)
+      .json({ message: "You can't follow/unfollow yourself." });
+  }
+
+  const currentUser = await User.findById(userId);
+  const targetUser = await User.findById(targetId);
+
+  if (!currentUser || !targetUser) {
+    return res.status(404).json({ message: "User not found." });
+  }
+  const isFollowing = currentUser.following.includes(targetId);
+
+  if (isFollowing) {
+    currentUser.following = currentUser.following.filter(
+      (id) => id.toString() !== targetId
+    );
+    targetUser.followers = targetUser.followers.filter(
+      (id) => id.toString() !== userId
+    );
+
+    await currentUser.save();
+    await targetUser.save();
+
+    return res.status(200).json({ message: "Unfollowed successfully." });
+  } else {
+    currentUser.following.push(targetId);
+    targetUser.followers.push(userId);
+
+    await currentUser.save();
+    await targetUser.save();
+
+    return res.status(200).json({ message: "Followed successfully." });
+  }
 };
