@@ -14,7 +14,7 @@ export const createPost = async (
     const { description } = req.body;
 
     // Extract image URL from middleware
-    const image = req.cloudinaryImageUrl;
+    const media = req.cloudinaryMediaUrl;
 
     // Validate author ID format
     if (!mongoose.isValidObjectId(author)) {
@@ -34,17 +34,17 @@ export const createPost = async (
     }
 
     // Ensure image content is provided
-    if (!image) {
+    if (!media) {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         status: HttpStatusCode.BAD_REQUEST,
-        message: "Please provide an image.",
+        message: "Please provide an image or video.",
       });
     }
 
     // Create a new post
     const newPost = new Post({
       author: new Types.ObjectId(author),
-      image,
+      content:media,
       description,
     });
 
@@ -157,5 +157,44 @@ export const toggle_like = async (req: Request,res: Response): Promise<any> => {
   } finally {
     // End the session
     session.endSession();
+  }
+};
+
+
+//getVideoPosts
+
+
+// Utility function to determine if the content URL is a video
+const getMediaTypeFromUrl = (url: string) => {
+  const videoExtensions = ['mp4', 'avi', 'mov', 'mkv' ,];
+  const extension = url.split('.').pop()?.toLowerCase();
+  return videoExtensions.includes(extension!) ? 'video' : 'image'; // Default to 'image'
+};
+
+// Controller to fetch all video posts by checking content URL extension
+export const getVideoPosts = async (req: Request, res: Response):Promise<any> => {
+  try {
+    const posts = await Post.find()
+    .populate("author", "userName profileImage")
+    .sort({ createdAt: -1 })
+    .populate({
+      path: "comments",
+      populate: [
+        { path: "author", select: "userName profileImage" },
+        
+      ],
+    });
+    
+
+    // Filter posts to include only videos based on URL file extension
+    const videoPosts = posts.filter((post) => getMediaTypeFromUrl(post.content) === 'video');
+
+    if (videoPosts.length === 0) {
+      return res.status(404).json({ message: 'No video posts found' });
+    }
+
+    res.status(200).json(videoPosts);
+  } catch (err) {
+    res.status(500).json({ message: 'Error retrieving video posts', error: err });
   }
 };

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toggleFollow = exports.getUserById = exports.suggestionProfiles = exports.profile = void 0;
+exports.searchUsers = exports.toggleFollow = exports.getUserById = exports.suggestionProfiles = exports.profile = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const userModel_1 = require("../models/userModel");
 const constat_1 = require("../constants/constat");
@@ -58,9 +58,35 @@ const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             ],
         },
-    ])
-        .populate('followers') // Populate followers
-        .populate('following');
+        {
+            path: "followers",
+            select: "userName profileImage", // Select necessary fields for followers
+            populate: [
+                {
+                    path: "followers",
+                    select: "userName profileImage", // Followers of followers
+                },
+                {
+                    path: "following",
+                    select: "userName profileImage", // Following of followers
+                },
+            ],
+        },
+        {
+            path: "following",
+            select: "userName profileImage", // Select necessary fields for following
+            populate: [
+                {
+                    path: "followers",
+                    select: "userName profileImage", // Followers of following
+                },
+                {
+                    path: "following",
+                    select: "userName profileImage", // Following of following
+                },
+            ],
+        },
+    ]);
     if (!profile) {
         return res.status(404).json({ message: "User not found" });
     }
@@ -133,3 +159,20 @@ const toggleFollow = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.toggleFollow = toggleFollow;
+//searchUsers
+const searchUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { query } = req.query;
+    if (!query || typeof query !== "string") {
+        return res.status(400).json({ message: "Query parameter is required" });
+    }
+    // Perform the search on the User collection
+    const users = yield userModel_1.User.find({
+        $or: [
+            { userName: { $regex: query, $options: "i" } }, // Case-insensitive search for name
+            { email: { $regex: query, $options: "i" } }, // Case-insensitive search for email
+        ],
+    });
+    // Return the found users as response
+    return res.status(200).json(users);
+});
+exports.searchUsers = searchUsers;

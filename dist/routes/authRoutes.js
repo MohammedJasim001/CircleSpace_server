@@ -10,5 +10,5 @@ const router = express_1.default.Router();
 router.post('/register', authController_1.registerUser);
 router.post('/verifyotp', authController_1.verifyOtp);
 router.post('/login', authController_1.loginUser);
-router.post('/profileimage', imageUploadMiddleware_1.uploadImage, authController_1.uploadProfileImage);
+router.post('/profileimage', imageUploadMiddleware_1.uploadMedia, authController_1.uploadProfileImage);
 exports.default = router;

@@ -8,7 +8,8 @@ const tryCatchMiddleware_1 = __importDefault(require("../middlewares/tryCatchMid
 const postController_1 = require("../controller/postController");
 const imageUploadMiddleware_1 = require("../middlewares/imageUploadMiddleware");
 const router = express_1.default.Router();
-router.post('/post/:author', imageUploadMiddleware_1.uploadImage, (0, tryCatchMiddleware_1.default)(postController_1.createPost));
+router.post('/post/:author', imageUploadMiddleware_1.uploadMedia, (0, tryCatchMiddleware_1.default)(postController_1.createPost));
 router.get('/post', (0, tryCatchMiddleware_1.default)(postController_1.getPost));
 router.post('/posts/like', (0, tryCatchMiddleware_1.default)(postController_1.toggle_like));
+router.get('/videos', postController_1.getVideoPosts);
 exports.default = router;

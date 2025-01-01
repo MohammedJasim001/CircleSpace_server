@@ -51,9 +51,40 @@ export const profile = async (
         },
       ],
     },
+    {
+      path: "followers",
+      select: "userName profileImage", // Select necessary fields for followers
+      populate: [
+        {
+          path: "followers",
+          select: "userName profileImage", // Followers of followers
+          
+        },
+        {
+          path: "following",
+          select: "userName profileImage", // Following of followers
+         
+        },
+      ],
+    },
+    {
+      path: "following",
+      select: "userName profileImage", // Select necessary fields for following
+      populate: [
+        {
+          path: "followers",
+          select: "userName profileImage", // Followers of following
+         
+        },
+        {
+          path: "following",
+          select: "userName profileImage", // Following of following
+          
+        },
+      ],
+    },
   ])
-    .populate('followers')  // Populate followers
-    .populate('following');
+
 
   if (!profile) {
     return res.status(404).json({ message: "User not found" });
@@ -153,4 +184,26 @@ export const toggleFollow = async (
 
     return res.status(200).json({ message: "Followed successfully." });
   }
+};
+
+
+//searchUsers
+export const searchUsers = async (req: Request, res: Response):Promise<any> => {
+
+  const { query } = req.query;
+  if (!query || typeof query !== "string") {
+    return res.status(400).json({ message: "Query parameter is required" });
+  }
+
+  // Perform the search on the User collection
+  const users = await User.find({
+    $or: [
+      { userName: { $regex: query, $options: "i" } }, // Case-insensitive search for name
+      { email: { $regex: query, $options: "i" } }, // Case-insensitive search for email
+    ],
+  });
+
+  // Return the found users as response
+  return res.status(200).json(users); 
+
 };

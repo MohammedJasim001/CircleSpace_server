@@ -107,9 +107,8 @@ exports.verifyOtp = verifyOtp;
 //profileImage
 const uploadProfileImage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email } = req.body;
-    const image = req.cloudinaryImageUrl;
-    console.log(image);
-    if (!image) {
+    const media = req.cloudinaryMediaUrl;
+    if (!media) {
         return res.status(constat_1.HttpStatusCode.NOT_FOUND).json({ status: constat_1.HttpStatusCode.NOT_FOUND, message: 'Profile image is required' });
     }
     try {
@@ -117,7 +116,7 @@ const uploadProfileImage = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!user) {
             return res.status(constat_1.HttpStatusCode.NOT_FOUND).json({ status: constat_1.HttpStatusCode.NOT_FOUND, message: 'User not found' });
         }
-        user.profileImage = image;
+        user.profileImage = media;
         yield user.save();
         return res.status(constat_1.HttpStatusCode.OK).json({
             status: constat_1.HttpStatusCode.OK,

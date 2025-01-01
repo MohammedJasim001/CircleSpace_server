@@ -114,11 +114,11 @@ export const verifyOtp = async (req:Request,res:Response):Promise<any>=>{
 
 export const uploadProfileImage = async (req: Request|any, res: Response): Promise<any> => {
     const { email } = req.body; 
-    const image = req.cloudinaryImageUrl; 
+    
+    const media = req.cloudinaryMediaUrl;
 
-    console.log(image);
 
-    if (!image) {
+    if (!media) {
         return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND, message: 'Profile image is required' });
     }
 
@@ -129,7 +129,7 @@ export const uploadProfileImage = async (req: Request|any, res: Response): Promi
             return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND, message: 'User not found' });
         }
 
-        user.profileImage = image;
+        user.profileImage = media;
         await user.save();
 
         return res.status(HttpStatusCode.OK).json({

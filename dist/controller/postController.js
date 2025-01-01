@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toggle_like = exports.getPost = exports.createPost = void 0;
+exports.getVideoPosts = exports.toggle_like = exports.getPost = exports.createPost = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const userModel_1 = require("../models/userModel");
 const postModel_1 = __importDefault(require("../models/postModel"));
@@ -55,7 +55,7 @@ const createPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const { author } = req.params;
         const { description } = req.body;
         // Extract image URL from middleware
-        const image = req.cloudinaryImageUrl;
+        const media = req.cloudinaryMediaUrl;
         // Validate author ID format
         if (!mongoose_1.default.isValidObjectId(author)) {
             return res.status(constat_1.HttpStatusCode.BAD_REQUEST).json({
@@ -72,16 +72,16 @@ const createPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             });
         }
         // Ensure image content is provided
-        if (!image) {
+        if (!media) {
             return res.status(constat_1.HttpStatusCode.BAD_REQUEST).json({
                 status: constat_1.HttpStatusCode.BAD_REQUEST,
-                message: "Please provide an image.",
+                message: "Please provide an image or video.",
             });
         }
         // Create a new post
         const newPost = new postModel_1.default({
             author: new mongoose_1.Types.ObjectId(author),
-            image,
+            content: media,
             description,
         });
         yield newPost.save();
@@ -176,3 +176,35 @@ const toggle_like = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.toggle_like = toggle_like;
+//getVideoPosts
+// Utility function to determine if the content URL is a video
+const getMediaTypeFromUrl = (url) => {
+    var _a;
+    const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'avif'];
+    const extension = (_a = url.split('.').pop()) === null || _a === void 0 ? void 0 : _a.toLowerCase();
+    return videoExtensions.includes(extension) ? 'video' : 'image'; // Default to 'image'
+};
+// Controller to fetch all video posts by checking content URL extension
+const getVideoPosts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const posts = yield postModel_1.default.find()
+            .populate("author", "userName profileImage")
+            .sort({ createdAt: -1 })
+            .populate({
+            path: "comments",
+            populate: [
+                { path: "author", select: "userName profileImage" },
+            ],
+        });
+        // Filter posts to include only videos based on URL file extension
+        const videoPosts = posts.filter((post) => getMediaTypeFromUrl(post.content) === 'video');
+        if (videoPosts.length === 0) {
+            return res.status(404).json({ message: 'No video posts found' });
+        }
+        res.status(200).json(videoPosts);
+    }
+    catch (err) {
+        res.status(500).json({ message: 'Error retrieving video posts', error: err });
+    }
+});
+exports.getVideoPosts = getVideoPosts;

@@ -10,4 +10,5 @@ router.get('/profile/:id', userController_1.profile);
 router.get('/suggestions/:id', userController_1.suggestionProfiles);
 // router.get('/user/:id')
 router.post('/follow', userController_1.toggleFollow);
+router.get('/search', userController_1.searchUsers);
 exports.default = router;
