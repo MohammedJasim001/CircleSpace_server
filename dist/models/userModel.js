@@ -69,7 +69,7 @@ const userSchema = new mongoose_1.default.Schema({
         type: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Comment" }],
         default: [],
     },
-    saved: {
+    savedPosts: {
         type: [{ type: mongoose_1.default.Schema.Types.ObjectId, ref: "Post" }], // Add saved field
         default: [],
     },

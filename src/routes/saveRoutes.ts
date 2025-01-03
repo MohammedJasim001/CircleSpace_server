@@ -1,9 +1,9 @@
 import express from 'express'
-import { addComment } from '../controller/commentController'
 import tryCatchMiddleware from '../middlewares/tryCatchMiddleware'
+import { toggleSavePost } from '../controller/saveController'
 
 const router = express.Router()
 
-router.post('/comment',tryCatchMiddleware(addComment) )
+router.post('/posts/save',tryCatchMiddleware(toggleSavePost))
 
 export default router

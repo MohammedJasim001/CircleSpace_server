@@ -45,62 +45,53 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getVideoPosts = exports.toggle_like = exports.getPost = exports.createPost = void 0;
+exports.postSave = exports.getVideoPosts = exports.toggle_like = exports.getPost = exports.createPost = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const userModel_1 = require("../models/userModel");
 const postModel_1 = __importDefault(require("../models/postModel"));
 const constat_1 = require("../constants/constat");
 const createPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { author } = req.params;
-        const { description } = req.body;
-        // Extract image URL from middleware
-        const media = req.cloudinaryMediaUrl;
-        // Validate author ID format
-        if (!mongoose_1.default.isValidObjectId(author)) {
-            return res.status(constat_1.HttpStatusCode.BAD_REQUEST).json({
-                status: constat_1.HttpStatusCode.BAD_REQUEST,
-                message: "Invalid ID format for author",
-            });
-        }
-        // Check if the author exists
-        const user = yield userModel_1.User.findById(author);
-        if (!user) {
-            return res.status(constat_1.HttpStatusCode.NOT_FOUND).json({
-                status: constat_1.HttpStatusCode.NOT_FOUND,
-                message: "Author not found",
-            });
-        }
-        // Ensure image content is provided
-        if (!media) {
-            return res.status(constat_1.HttpStatusCode.BAD_REQUEST).json({
-                status: constat_1.HttpStatusCode.BAD_REQUEST,
-                message: "Please provide an image or video.",
-            });
-        }
-        // Create a new post
-        const newPost = new postModel_1.default({
-            author: new mongoose_1.Types.ObjectId(author),
-            content: media,
-            description,
-        });
-        yield newPost.save();
-        // Update the user's posts array
-        yield userModel_1.User.updateOne({ _id: new mongoose_1.Types.ObjectId(author) }, { $push: { posts: newPost._id } });
-        return res.status(constat_1.HttpStatusCode.CREATED).json({
-            success: true,
-            status: constat_1.HttpStatusCode.CREATED,
-            message: "Post created successfully",
-            data: newPost,
+    const { author } = req.params;
+    const { description } = req.body;
+    // Extract image URL from middleware
+    const media = req.cloudinaryMediaUrl;
+    // Validate author ID format
+    if (!mongoose_1.default.isValidObjectId(author)) {
+        return res.status(constat_1.HttpStatusCode.BAD_REQUEST).json({
+            status: constat_1.HttpStatusCode.BAD_REQUEST,
+            message: "Invalid ID format for author",
         });
     }
-    catch (error) {
-        console.error("Error creating post:", error);
-        return res.status(constat_1.HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-            status: constat_1.HttpStatusCode.INTERNAL_SERVER_ERROR,
-            message: "An error occurred while creating the post",
+    // Check if the author exists
+    const user = yield userModel_1.User.findById(author);
+    if (!user) {
+        return res.status(constat_1.HttpStatusCode.NOT_FOUND).json({
+            status: constat_1.HttpStatusCode.NOT_FOUND,
+            message: "Author not found",
         });
     }
+    // Ensure image content is provided
+    if (!media) {
+        return res.status(constat_1.HttpStatusCode.BAD_REQUEST).json({
+            status: constat_1.HttpStatusCode.BAD_REQUEST,
+            message: "Please provide an image or video.",
+        });
+    }
+    // Create a new post
+    const newPost = new postModel_1.default({
+        author: new mongoose_1.Types.ObjectId(author),
+        content: media,
+        description,
+    });
+    yield newPost.save();
+    // Update the user's posts array
+    yield userModel_1.User.updateOne({ _id: new mongoose_1.Types.ObjectId(author) }, { $push: { posts: newPost._id } });
+    return res.status(constat_1.HttpStatusCode.CREATED).json({
+        success: true,
+        status: constat_1.HttpStatusCode.CREATED,
+        message: "Post created successfully",
+        data: newPost,
+    });
 });
 exports.createPost = createPost;
 const getPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -180,31 +171,35 @@ exports.toggle_like = toggle_like;
 // Utility function to determine if the content URL is a video
 const getMediaTypeFromUrl = (url) => {
     var _a;
-    const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'avif'];
+    const videoExtensions = ['mp4', 'avi', 'mov', 'mkv',];
     const extension = (_a = url.split('.').pop()) === null || _a === void 0 ? void 0 : _a.toLowerCase();
     return videoExtensions.includes(extension) ? 'video' : 'image'; // Default to 'image'
 };
 // Controller to fetch all video posts by checking content URL extension
 const getVideoPosts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const posts = yield postModel_1.default.find()
-            .populate("author", "userName profileImage")
-            .sort({ createdAt: -1 })
-            .populate({
-            path: "comments",
-            populate: [
-                { path: "author", select: "userName profileImage" },
-            ],
-        });
-        // Filter posts to include only videos based on URL file extension
-        const videoPosts = posts.filter((post) => getMediaTypeFromUrl(post.content) === 'video');
-        if (videoPosts.length === 0) {
-            return res.status(404).json({ message: 'No video posts found' });
-        }
-        res.status(200).json(videoPosts);
+    const posts = yield postModel_1.default.find()
+        .populate("author", "userName profileImage")
+        .sort({ createdAt: -1 })
+        .populate({
+        path: "comments",
+        populate: [
+            { path: "author", select: "userName profileImage" },
+        ],
+    });
+    // Filter posts to include only videos based on URL file extension
+    const videoPosts = posts.filter((post) => getMediaTypeFromUrl(post.content) === 'video');
+    if (videoPosts.length === 0) {
+        return res.status(404).json({ message: 'No video posts found' });
     }
-    catch (err) {
-        res.status(500).json({ message: 'Error retrieving video posts', error: err });
-    }
+    res.status(200).json(videoPosts);
 });
 exports.getVideoPosts = getVideoPosts;
+//save Post
+const postSave = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { postId } = req.params;
+    const post = yield postModel_1.default.findById(postId);
+    if (!post) {
+        return res.status(constat_1.HttpStatusCode.NOT_FOUND).json({ status: constat_1.HttpStatusCode.NOT_FOUND, message: "post not found" });
+    }
+});
+exports.postSave = postSave;

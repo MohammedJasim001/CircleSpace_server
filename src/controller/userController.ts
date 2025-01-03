@@ -17,7 +17,7 @@ export const profile = async (
   const profile = await User.findById(id).populate([
     {
       path: "posts",
-      select: "image description likes comments createdAt updatedAt",
+      select: "content description likes comments createdAt updatedAt",
       populate: [
         {
           path: "comments",
@@ -38,7 +38,7 @@ export const profile = async (
     //   },
     // },
     {
-      path: "likedPosts", // Populate likedPosts
+      path: "savedPosts", // Populate likedPosts
       select: "image description likes comments createdAt updatedAt", // Select necessary fields
       populate: [
         {

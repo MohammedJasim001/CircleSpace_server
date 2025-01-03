@@ -9,7 +9,7 @@ export const createPost = async (
   req: Request | any,
   res: Response
 ): Promise<Response | any> => {
-  try {
+ 
     const { author } = req.params;
     const { description } = req.body;
 
@@ -62,13 +62,7 @@ export const createPost = async (
       message: "Post created successfully",
       data: newPost,
     });
-  } catch (error) {
-    console.error("Error creating post:", error);
-    return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-      status: HttpStatusCode.INTERNAL_SERVER_ERROR,
-      message: "An error occurred while creating the post",
-    });
-  }
+  
 };
 
 
@@ -173,7 +167,7 @@ const getMediaTypeFromUrl = (url: string) => {
 
 // Controller to fetch all video posts by checking content URL extension
 export const getVideoPosts = async (req: Request, res: Response):Promise<any> => {
-  try {
+  
     const posts = await Post.find()
     .populate("author", "userName profileImage")
     .sort({ createdAt: -1 })
@@ -194,7 +188,19 @@ export const getVideoPosts = async (req: Request, res: Response):Promise<any> =>
     }
 
     res.status(200).json(videoPosts);
-  } catch (err) {
-    res.status(500).json({ message: 'Error retrieving video posts', error: err });
-  }
+  
 };
+
+
+//save Post
+export const postSave = async(req:Request, res:Response):Promise<any> => {
+  const {postId } = req.params
+
+  const post = await Post.findById(postId)
+
+  if(!post){
+    return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND,message:"post not found"})
+  }
+  
+
+}

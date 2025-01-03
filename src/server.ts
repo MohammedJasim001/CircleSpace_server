@@ -7,6 +7,7 @@ import authRoutes from './routes/authRoutes'
 import postRoutes from './routes/postRoutes'
 import commentRoutes from './routes/commentRoutes'
 import userRoutes from './routes/userRoutes'
+import saveRoutes from './routes/saveRoutes'
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use('/api/user', authRoutes);
 app.use('/api/user', postRoutes)
 app.use('/api/user',commentRoutes)
 app.use('/api/user',userRoutes)
+app.use('/api/user',saveRoutes)
 
 
 app.listen(port, () => {

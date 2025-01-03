@@ -24,7 +24,7 @@ const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const profile = yield userModel_1.User.findById(id).populate([
         {
             path: "posts",
-            select: "image description likes comments createdAt updatedAt",
+            select: "content description likes comments createdAt updatedAt",
             populate: [
                 {
                     path: "comments",
@@ -45,7 +45,7 @@ const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //   },
         // },
         {
-            path: "likedPosts", // Populate likedPosts
+            path: "savedPosts", // Populate likedPosts
             select: "image description likes comments createdAt updatedAt", // Select necessary fields
             populate: [
                 {
