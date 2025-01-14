@@ -13,6 +13,8 @@ const postRoutes_1 = __importDefault(require("./routes/postRoutes"));
 const commentRoutes_1 = __importDefault(require("./routes/commentRoutes"));
 const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const saveRoutes_1 = __importDefault(require("./routes/saveRoutes"));
+const messageRoutes_1 = __importDefault(require("./routes/messageRoutes"));
+const notificationRoutes_1 = __importDefault(require("./routes/notificationRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, cookie_parser_1.default)());
@@ -27,6 +29,8 @@ app.use('/api/user', postRoutes_1.default);
 app.use('/api/user', commentRoutes_1.default);
 app.use('/api/user', userRoutes_1.default);
 app.use('/api/user', saveRoutes_1.default);
+app.use('/api/user/message', messageRoutes_1.default);
+app.use('/api/user/notification', notificationRoutes_1.default);
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
