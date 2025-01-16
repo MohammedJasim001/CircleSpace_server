@@ -12,50 +12,86 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markAsRead = exports.getMessages = exports.sendMessage = void 0;
-const messageModel_1 = __importDefault(require("../models/messageModel"));
-// Send a message
-const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { senderId, receiverId, content } = req.body;
+exports.getRecentChatUsers = exports.getRecentChatMessages = exports.sendMessage = exports.saveMessage = void 0;
+const messageModel_1 = __importDefault(require("../models/messageModel")); // Assuming you have a Message model
+// Save a message to the database
+const saveMessage = (sender, receiver, content) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newMessage = yield messageModel_1.default.create({
-            sender: senderId,
-            receiver: receiverId,
+        const newMessage = new messageModel_1.default({
+            sender,
+            receiver,
             content,
+            timestamp: new Date(),
         });
-        res.status(201).json(newMessage);
+        yield newMessage.save();
+        return newMessage;
     }
     catch (error) {
-        res.status(500).json({ message: "Failed to send message", error });
+        throw new Error('Failed to save message');
+    }
+});
+exports.saveMessage = saveMessage;
+const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { sender, receiver, content } = req.body;
+    try {
+        const newMessage = new messageModel_1.default({
+            sender,
+            receiver,
+            content,
+            timestamp: new Date(),
+        });
+        yield newMessage.save();
+        res.status(200).json({ message: 'Message sent successfully', data: newMessage });
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to send message' });
     }
 });
 exports.sendMessage = sendMessage;
-// Get messages between two users
-const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId1, userId2 } = req.params;
+// Get recent chat messages for a specific user
+const getRecentChatMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params;
     try {
         const messages = yield messageModel_1.default.find({
-            $or: [
-                { sender: userId1, receiver: userId2 },
-                { sender: userId2, receiver: userId1 },
-            ],
-        }).sort({ createdAt: 1 });
+            $or: [{ sender: userId }, { receiver: userId }],
+        })
+            .populate('sender', 'userName profileImage')
+            .populate('receiver', 'userName profileImage')
+            .sort({ timestamp: -1 });
         res.status(200).json(messages);
     }
     catch (error) {
-        res.status(500).json({ message: "Failed to retrieve messages", error });
+        res.status(500).json({ error: 'Failed to retrieve messages' });
     }
 });
-exports.getMessages = getMessages;
-// Mark a message as read
-const markAsRead = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { messageId } = req.params;
+exports.getRecentChatMessages = getRecentChatMessages;
+// Get a list of recent chat users (based on last message sent or received)
+const getRecentChatUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params;
     try {
-        yield messageModel_1.default.findByIdAndUpdate(messageId, { isRead: true });
-        res.status(200).json({ message: "Message marked as read" });
+        const messages = yield messageModel_1.default.find({
+            $or: [{ sender: userId }, { receiver: userId }],
+        })
+            .sort({ timestamp: -1 })
+            .populate('sender', 'userName profileImage')
+            .populate('receiver', 'userName profileImage');
+        const recentChats = [];
+        const seenUsers = new Set();
+        messages.forEach((msg) => {
+            const chatPartner = msg.sender._id.toString() === userId ? msg.receiver : msg.sender;
+            if (!seenUsers.has(chatPartner._id.toString())) {
+                recentChats.push({
+                    chatPartner,
+                    latestMessage: msg.content,
+                    timestamp: msg.timestamp,
+                });
+                seenUsers.add(chatPartner._id.toString());
+            }
+        });
+        res.status(200).json(recentChats);
     }
     catch (error) {
-        res.status(500).json({ message: "Failed to mark message as read", error });
+        res.status(500).json({ error: 'Failed to fetch recent chat users' });
     }
 });
-exports.markAsRead = markAsRead;
+exports.getRecentChatUsers = getRecentChatUsers;

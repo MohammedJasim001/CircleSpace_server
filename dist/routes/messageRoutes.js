@@ -1,9 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const messageController_1 = require("../controller/messageController");
+const tryCatchMiddleware_1 = __importDefault(require("../middlewares/tryCatchMiddleware"));
 const router = (0, express_1.Router)();
-router.post("/send", messageController_1.sendMessage);
-router.get("/:userId1/:userId2", messageController_1.getMessages);
-router.patch("/read/:messageId", messageController_1.markAsRead);
+router.post("/send", (0, tryCatchMiddleware_1.default)(messageController_1.sendMessage));
+router.get("/:userId", (0, tryCatchMiddleware_1.default)(messageController_1.getRecentChatMessages));
+// router.patch("/read/:messageId",tryCatchMiddleware(markAsRead) );
+router.get('/resentchats/:userId', (0, tryCatchMiddleware_1.default)(messageController_1.getRecentChatUsers));
 exports.default = router;

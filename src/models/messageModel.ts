@@ -6,6 +6,7 @@ export interface MessageI extends Document {
   content: string;
   isRead: boolean;
   createdAt: Date;
+  timestamp:Date
 }
 
 const messageSchema = new mongoose.Schema<MessageI>(
@@ -28,6 +29,7 @@ const messageSchema = new mongoose.Schema<MessageI>(
       type: Boolean,
       default: false,
     },
+    timestamp: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

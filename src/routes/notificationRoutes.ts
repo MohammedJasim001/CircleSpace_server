@@ -4,11 +4,12 @@ import {
   getNotifications,
   markNotificationAsRead,
 } from "../controller/notificationController";
+import tryCatchMiddleware from "../middlewares/tryCatchMiddleware";
 
 const router = Router();
 
-router.post("/create", createNotification);
-router.get("/:userId", getNotifications);
-router.patch("/read/:notificationId", markNotificationAsRead);
+router.post("/create",tryCatchMiddleware(createNotification) );
+router.get("/:userId",tryCatchMiddleware(getNotifications) );
+router.patch("/read/:notificationId",tryCatchMiddleware(markNotificationAsRead) );
 
 export default router;
