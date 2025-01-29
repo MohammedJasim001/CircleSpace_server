@@ -88,3 +88,25 @@ export const getRecentChatUsers = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch recent chat users' });
   }
 };
+
+//
+export const getPersonalChat = async (req: Request, res: Response) => {
+  const { user1, user2 } = req.params;
+
+  try {
+    const messages = await Message.find({
+      $or: [
+        { sender: user1, receiver: user2 },
+        { sender: user2, receiver: user1 }
+      ]
+    })
+      .sort({ timestamp: 1 }) // Sort in ascending order (oldest to newest)
+      .populate('sender', 'userName profileImage')
+      .populate('receiver', 'userName profileImage');
+
+    res.status(200).json(messages);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve chat messages' });
+  }
+};
+

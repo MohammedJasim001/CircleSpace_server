@@ -11,4 +11,5 @@ router.post("/send", (0, tryCatchMiddleware_1.default)(messageController_1.sendM
 router.get("/:userId", (0, tryCatchMiddleware_1.default)(messageController_1.getRecentChatMessages));
 // router.patch("/read/:messageId",tryCatchMiddleware(markAsRead) );
 router.get('/resentchats/:userId', (0, tryCatchMiddleware_1.default)(messageController_1.getRecentChatUsers));
+router.get('/chats/:user1/:user2', (0, tryCatchMiddleware_1.default)(messageController_1.getPersonalChat));
 exports.default = router;

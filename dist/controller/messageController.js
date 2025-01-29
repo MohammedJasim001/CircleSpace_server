@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getRecentChatUsers = exports.getRecentChatMessages = exports.sendMessage = exports.saveMessage = void 0;
+exports.getPersonalChat = exports.getRecentChatUsers = exports.getRecentChatMessages = exports.sendMessage = exports.saveMessage = void 0;
 const messageModel_1 = __importDefault(require("../models/messageModel")); // Assuming you have a Message model
 // Save a message to the database
 const saveMessage = (sender, receiver, content) => __awaiter(void 0, void 0, void 0, function* () {
@@ -95,3 +95,23 @@ const getRecentChatUsers = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.getRecentChatUsers = getRecentChatUsers;
+//
+const getPersonalChat = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { user1, user2 } = req.params;
+    try {
+        const messages = yield messageModel_1.default.find({
+            $or: [
+                { sender: user1, receiver: user2 },
+                { sender: user2, receiver: user1 }
+            ]
+        })
+            .sort({ timestamp: 1 }) // Sort in ascending order (oldest to newest)
+            .populate('sender', 'userName profileImage')
+            .populate('receiver', 'userName profileImage');
+        res.status(200).json(messages);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve chat messages' });
+    }
+});
+exports.getPersonalChat = getPersonalChat;
