@@ -22,7 +22,7 @@ import { initializeSockets } from './utils/socket';
 dotenv.config();
 
 const allowedOrigins = [
-  "http://localhost:3000", 
+  // "http://localhost:3000", 
   "https://circle-space-client.vercel.app", 
 ];
 
