@@ -37,7 +37,7 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(cookieParser());
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
+app.use(cors({ origin: 'https://circle-space-client.vercel.app', credentials: true }));
 app.use(express.json());
 
 // MongoDB Connection
