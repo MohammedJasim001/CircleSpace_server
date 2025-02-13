@@ -23,7 +23,7 @@ dotenv.config();
 
 const allowedOrigins = [
   "http://localhost:3000", 
-  "https://circlespace-server.onrender.com", 
+  "https://circle-space-client.vercel.app", 
 ];
 
 const app = express();
