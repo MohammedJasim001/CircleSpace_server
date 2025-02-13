@@ -161,6 +161,7 @@ const loginUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 email: userExist.email,
                 userName: userExist.userName,
                 profileImage: userExist.profileImage,
+                bio: userExist.bio,
             }
         });
     }

@@ -186,6 +186,7 @@ export const loginUser = async (req: Request, res: Response): Promise<any> => {
                 email:userExist.email,
                 userName:userExist.userName,
                 profileImage:userExist.profileImage,
+                bio:userExist.bio,
             }
             });
     } catch (error) {

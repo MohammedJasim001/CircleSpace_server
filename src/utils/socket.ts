@@ -7,12 +7,15 @@ export const initializeSockets = (io: Server) => {
   io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
-    socket.on('sendMessage', async (data) => {
+    socket.on('sendMessage', async (s) => {
+      // console.log(s,'s')
       try {
-        const { sender, receiver, content } = data;
+        const { data } = s;
+        const {sender,receiver,content} = data
+        console.log(data,'data')
         const newMessage = await saveMessage(sender, receiver, content);
         io.to(receiver).emit('receiveMessage', newMessage);
-        console.log('Message sent:', newMessage);
+        // console.log('Message sent:', newMessage);
       } catch (error) {
         console.error('Error sending message:', error);
       }

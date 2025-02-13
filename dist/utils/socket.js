@@ -15,12 +15,15 @@ const initializeSockets = (io) => {
     console.log('Initializing sockets...');
     io.on('connection', (socket) => {
         console.log('A user connected:', socket.id);
-        socket.on('sendMessage', (data) => __awaiter(void 0, void 0, void 0, function* () {
+        socket.on('sendMessage', (s) => __awaiter(void 0, void 0, void 0, function* () {
+            // console.log(s,'s')
             try {
+                const { data } = s;
                 const { sender, receiver, content } = data;
+                console.log(data, 'data');
                 const newMessage = yield (0, messageController_1.saveMessage)(sender, receiver, content);
                 io.to(receiver).emit('receiveMessage', newMessage);
-                console.log('Message sent:', newMessage);
+                // console.log('Message sent:', newMessage);
             }
             catch (error) {
                 console.error('Error sending message:', error);

@@ -10,7 +10,7 @@
   },
   "scripts": {
     "dev": "nodemon src/sever.ts",
-    "start": "nodemon dist/server.js",
+    "start": "node dist/server.js",
     "build": "tsc"
   },
   "dependencies": {

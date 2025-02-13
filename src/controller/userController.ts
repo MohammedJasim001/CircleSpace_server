@@ -29,14 +29,6 @@ export const profile = async (
         },
       ],
     },
-    // {
-    //   path: "stories",
-    //   select: "content postedAt description isArchived createdAt updatedAt",
-    //   populate: {
-    //     path: "author",
-    //     select: "username profilePicture",
-    //   },
-    // },
     {
       path: "savedPosts", // Populate likedPosts
       select: "image description likes comments createdAt updatedAt", // Select necessary fields
@@ -198,12 +190,49 @@ export const searchUsers = async (req: Request, res: Response):Promise<any> => {
   // Perform the search on the User collection
   const users = await User.find({
     $or: [
-      { userName: { $regex: query, $options: "i" } }, // Case-insensitive search for name
-      { email: { $regex: query, $options: "i" } }, // Case-insensitive search for email
+      { userName: { $regex: query, $options: "i" } }, 
+      { email: { $regex: query, $options: "i" } }, 
     ],
   });
 
   // Return the found users as response
   return res.status(200).json(users); 
+
+};
+
+//edit userProfile
+export const editProfile = async (req: Request | any, res: Response):Promise<any> => {
+
+  
+    const { userId } = req.params;
+    const { bio, userName, name} = req.body;
+    const media = req.cloudinaryMediaUrl;
+
+    console.log(media);
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    if (userName) {
+      const existingUser = await User.findOne({ userName });
+      if (existingUser && existingUser._id.toString() !== userId) {
+          return res.status(400).json({ message: "Username already taken" });
+      }
+      user.userName = userName;
+  }
+
+    if (media) {
+      user.profileImage = media; 
+    }
+    if (bio !== undefined) user.bio = bio;
+    if (name) user.name = name;
+    if (userName) user.userName = userName
+
+    // Save updated user
+    await user.save();
+
+    return res.status(200).json({ message: "Profile updated successfully", user });
 
 };

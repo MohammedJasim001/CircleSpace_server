@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchUsers = exports.toggleFollow = exports.getUserById = exports.suggestionProfiles = exports.profile = void 0;
+exports.editProfile = exports.searchUsers = exports.toggleFollow = exports.getUserById = exports.suggestionProfiles = exports.profile = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const userModel_1 = require("../models/userModel");
 const constat_1 = require("../constants/constat");
@@ -36,14 +36,6 @@ const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 },
             ],
         },
-        // {
-        //   path: "stories",
-        //   select: "content postedAt description isArchived createdAt updatedAt",
-        //   populate: {
-        //     path: "author",
-        //     select: "username profilePicture",
-        //   },
-        // },
         {
             path: "savedPosts", // Populate likedPosts
             select: "image description likes comments createdAt updatedAt", // Select necessary fields
@@ -168,11 +160,42 @@ const searchUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     // Perform the search on the User collection
     const users = yield userModel_1.User.find({
         $or: [
-            { userName: { $regex: query, $options: "i" } }, // Case-insensitive search for name
-            { email: { $regex: query, $options: "i" } }, // Case-insensitive search for email
+            { userName: { $regex: query, $options: "i" } },
+            { email: { $regex: query, $options: "i" } },
         ],
     });
     // Return the found users as response
     return res.status(200).json(users);
 });
 exports.searchUsers = searchUsers;
+//edit userProfile
+const editProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userId } = req.params;
+    const { bio, userName, name } = req.body;
+    const media = req.cloudinaryMediaUrl;
+    console.log(media);
+    const user = yield userModel_1.User.findById(userId);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    if (userName) {
+        const existingUser = yield userModel_1.User.findOne({ userName });
+        if (existingUser && existingUser._id.toString() !== userId) {
+            return res.status(400).json({ message: "Username already taken" });
+        }
+        user.userName = userName;
+    }
+    if (media) {
+        user.profileImage = media;
+    }
+    if (bio !== undefined)
+        user.bio = bio;
+    if (name)
+        user.name = name;
+    if (userName)
+        user.userName = userName;
+    // Save updated user
+    yield user.save();
+    return res.status(200).json({ message: "Profile updated successfully", user });
+});
+exports.editProfile = editProfile;

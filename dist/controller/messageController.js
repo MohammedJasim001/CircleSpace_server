@@ -17,34 +17,34 @@ const messageModel_1 = __importDefault(require("../models/messageModel")); // As
 // Save a message to the database
 const saveMessage = (sender, receiver, content) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const newMessage = new messageModel_1.default({
-            sender,
-            receiver,
-            content,
-            timestamp: new Date(),
-        });
+        // const existingMessage = await Message.findOne({ sender, receiver, content }).sort({ timestamp: -1 });
+        // if (existingMessage) {
+        //   return existingMessage;
+        // }
+        console.log("Saving new message:", { sender, receiver, content });
+        const newMessage = new messageModel_1.default({ sender, receiver, content, timestamp: new Date() });
         yield newMessage.save();
         return newMessage;
     }
     catch (error) {
-        throw new Error('Failed to save message');
+        console.error("Error saving message:", error);
+        throw new Error("Failed to save message");
     }
 });
 exports.saveMessage = saveMessage;
 const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { sender, receiver, content } = req.body;
+    if (!sender || !receiver || !content) {
+        return res.status(400).json({ error: 'All fields (sender, receiver, content) are required' });
+    }
     try {
-        const newMessage = new messageModel_1.default({
-            sender,
-            receiver,
-            content,
-            timestamp: new Date(),
-        });
-        yield newMessage.save();
-        res.status(200).json({ message: 'Message sent successfully', data: newMessage });
+        const newMessage = yield (0, exports.saveMessage)(sender, receiver, content);
+        // console.log(newMessage,'new message from sendmessage')
+        return res.status(201).json({ message: 'Message sent successfully', data: newMessage });
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to send message' });
+        console.error('Error sending message:', error);
+        return res.status(500).json({ error: 'Failed to send message' });
     }
 });
 exports.sendMessage = sendMessage;
