@@ -21,11 +21,16 @@ import { initializeSockets } from './utils/socket';
 
 dotenv.config();
 
+const allowedOrigins = [
+  "http://localhost:3000", 
+  "https://circlespace-server.onrender.com", 
+];
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
   },
 });
