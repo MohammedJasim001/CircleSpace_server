@@ -25,6 +25,7 @@ const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         {
             path: "posts",
             select: "content description likes comments createdAt updatedAt",
+            options: { sort: { createdAt: -1 } },
             populate: [
                 {
                     path: "comments",
@@ -38,7 +39,8 @@ const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         },
         {
             path: "savedPosts", // Populate likedPosts
-            select: "image description likes comments createdAt updatedAt", // Select necessary fields
+            select: "content description likes comments createdAt updatedAt", // Select necessary fields
+            options: { sort: { createdAt: -1 } },
             populate: [
                 {
                     path: "comments",

@@ -21,23 +21,20 @@ import { initializeSockets } from './utils/socket';
 
 dotenv.config();
 
-const allowedOrigins = [
-  // "http://localhost:3000", 
-  "https://circle-space-client.vercel.app", 
-];
 
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: ["http://localhost:3000"],
     credentials: true,
   },
 });
 
+
 // Middleware
 app.use(cookieParser());
-app.use(cors({ origin: 'https://circle-space-client.vercel.app', credentials: true }));
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.json());
 
 // MongoDB Connection
@@ -57,10 +54,9 @@ app.use('/api/user/notification', notificationRoutes);
 
 // WebSocket Logic
 initializeSockets(io);
-console.log(initializeSockets(io),'lkasjdf');
 
 // Start the server
-const port = process.env.PORT || 5000;
+const port = process.env.PORT ;
 httpServer.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

@@ -8,33 +8,47 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initializeSockets = void 0;
-const messageController_1 = require("../controller/messageController");
+const messageModel_1 = __importDefault(require("../models/messageModel"));
+const onlineUsers = new Map();
 const initializeSockets = (io) => {
-    console.log('Initializing sockets...');
-    io.on('connection', (socket) => {
-        console.log('A user connected:', socket.id);
-        socket.on('sendMessage', (s) => __awaiter(void 0, void 0, void 0, function* () {
-            // console.log(s,'s')
-            try {
-                const { data } = s;
-                const { sender, receiver, content } = data;
-                console.log(data, 'data');
-                const newMessage = yield (0, messageController_1.saveMessage)(sender, receiver, content);
-                io.to(receiver).emit('receiveMessage', newMessage);
-                // console.log('Message sent:', newMessage);
-            }
-            catch (error) {
-                console.error('Error sending message:', error);
-            }
-        }));
-        socket.on('joinRoom', (roomId) => {
+    console.log("Initializing sockets...");
+    io.on("connection", (socket) => {
+        socket.on("connected", (userId) => {
+            onlineUsers.set(userId, socket.id);
+            console.log('user connected: ', userId);
+            socket.on("sendMessage", (data) => __awaiter(void 0, void 0, void 0, function* () {
+                try {
+                    const { sender, receiver, content } = data;
+                    const newMessage = yield messageModel_1.default.create({
+                        sender,
+                        receiver,
+                        content,
+                    });
+                    const recieverSocket = onlineUsers.get(receiver);
+                    if (recieverSocket) {
+                        io.to(recieverSocket).emit("receiveMessage", newMessage);
+                        io.to(recieverSocket).emit("newNotification", newMessage);
+                    }
+                }
+                catch (error) {
+                    console.error("Error sending message:", error);
+                }
+            }));
+        });
+        socket.on("updateLatestMessages", ({ senderId, receiverId, message, timestamp }) => {
+            io.emit("latestMessageUpdate", { senderId, receiverId, message, timestamp });
+        });
+        socket.on("joinRoom", (roomId) => {
             socket.join(roomId);
             console.log(`User ${socket.id} joined room: ${roomId}`);
         });
-        socket.on('disconnect', () => {
-            console.log('User disconnected:', socket.id);
+        socket.on("disconnect", () => {
+            console.log("User disconnected:", socket.id);
         });
     });
 };

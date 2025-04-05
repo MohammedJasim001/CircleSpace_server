@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tryCatchMiddleware = (handler) => {
     return (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            yield handler(req, res, next); // Ensure the handler is awaited if it returns a promise
+            yield handler(req, res, next);
         }
         catch (error) {
             console.error(error);

@@ -18,6 +18,7 @@ export const profile = async (
     {
       path: "posts",
       select: "content description likes comments createdAt updatedAt",
+      options: { sort: { createdAt: -1 } },
       populate: [
         {
           path: "comments",
@@ -31,7 +32,8 @@ export const profile = async (
     },
     {
       path: "savedPosts", // Populate likedPosts
-      select: "image description likes comments createdAt updatedAt", // Select necessary fields
+      select: "content description likes comments createdAt updatedAt", // Select necessary fields
+      options: { sort: { createdAt: -1 } },
       populate: [
         {
           path: "comments",

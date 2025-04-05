@@ -8,7 +8,6 @@ export interface IComment extends Document {
   replies: Types.ObjectId[];
   createdAt?: Date;
 }
-
 const commentSchema = new Schema<IComment>(
   {
     author: { type: Schema.Types.ObjectId, ref: "User", required: true },

@@ -21,21 +21,17 @@ const notificationRoutes_1 = __importDefault(require("./routes/notificationRoute
 const socket_1 = require("./utils/socket");
 // Import Socket and Controllers
 dotenv_1.default.config();
-const allowedOrigins = [
-    "http://localhost:3000",
-    "https://circle-space-client.vercel.app",
-];
 const app = (0, express_1.default)();
 const httpServer = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(httpServer, {
     cors: {
-        origin: allowedOrigins,
+        origin: ["http://localhost:3000"],
         credentials: true,
     },
 });
 // Middleware
 app.use((0, cookie_parser_1.default)());
-app.use((0, cors_1.default)({ origin: 'http://localhost:3000', credentials: true }));
+app.use((0, cors_1.default)({ origin: "http://localhost:3000", credentials: true }));
 app.use(express_1.default.json());
 // MongoDB Connection
 mongoose_1.default
@@ -52,9 +48,8 @@ app.use('/api/user/message', messageRoutes_1.default);
 app.use('/api/user/notification', notificationRoutes_1.default);
 // WebSocket Logic
 (0, socket_1.initializeSockets)(io);
-console.log((0, socket_1.initializeSockets)(io), 'lkasjdf');
 // Start the server
-const port = process.env.PORT || 5000;
+const port = process.env.PORT;
 httpServer.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
