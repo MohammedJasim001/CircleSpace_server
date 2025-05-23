@@ -101,9 +101,7 @@ const getPersonalChat = (req, res) => __awaiter(void 0, void 0, void 0, function
                 { sender: user2, receiver: user1 }
             ]
         })
-            .sort({ timestamp: 1 }) // Sort in ascending order (oldest to newest)
-            .populate('sender', 'userName profileImage')
-            .populate('receiver', 'userName profileImage');
+            .sort({ timestamp: 1 }); // Sort in ascending order (oldest to newest)
         res.status(200).json(messages);
     }
     catch (error) {

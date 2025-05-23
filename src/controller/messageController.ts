@@ -106,8 +106,7 @@ export const getPersonalChat = async (req: Request, res: Response) => {
       ]
     })
       .sort({ timestamp: 1 }) // Sort in ascending order (oldest to newest)
-      .populate('sender', 'userName profileImage')
-      .populate('receiver', 'userName profileImage');
+
 
     res.status(200).json(messages);
   } catch (error) {

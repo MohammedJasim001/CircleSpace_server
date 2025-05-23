@@ -29,11 +29,12 @@ const initializeSockets = (io) => {
                         receiver,
                         content,
                     });
+                    console.log(newMessage, 'new message');
                     const recieverSocket = onlineUsers.get(receiver);
                     if (recieverSocket) {
                         io.to(recieverSocket).emit("receiveMessage", newMessage);
-                        io.to(recieverSocket).emit("newNotification", newMessage);
                     }
+                    io.to(recieverSocket).emit("newNotification", newMessage);
                 }
                 catch (error) {
                     console.error("Error sending message:", error);

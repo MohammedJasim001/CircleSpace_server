@@ -18,6 +18,7 @@ export const initializeSockets = (io: Server) => {
             receiver,
             content,
           });
+          console.log(newMessage,'new message');
           const recieverSocket = onlineUsers.get(receiver);
           if (recieverSocket) {
             io.to(recieverSocket).emit("receiveMessage", newMessage);
