@@ -29,10 +29,9 @@ const io = new Server(httpServer, {
     origin: ["https://circle-space-client.vercel.app","http://localhost:3000"],
     credentials: true,
   },
-});
+}); 
 
-
-// Middleware
+// Middlewareaa
 app.use(cookieParser());
 app.use(cors({ origin: ["https://circle-space-client.vercel.app","http://localhost:3000"], credentials: true }));
 app.use(express.json());
