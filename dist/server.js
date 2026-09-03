@@ -25,13 +25,13 @@ const app = (0, express_1.default)();
 const httpServer = (0, http_1.createServer)(app);
 const io = new socket_io_1.Server(httpServer, {
     cors: {
-        origin: ["http://localhost:3000"],
+        origin: ["https://circle-space-client.vercel.app", "http://localhost:3000"],
         credentials: true,
     },
 });
-// Middleware
+// Middlewareaa
 app.use((0, cookie_parser_1.default)());
-app.use((0, cors_1.default)({ origin: "http://localhost:3000", credentials: true }));
+app.use((0, cors_1.default)({ origin: ["https://circle-space-client.vercel.app", "http://localhost:3000"], credentials: true }));
 app.use(express_1.default.json());
 // MongoDB Connection
 mongoose_1.default
