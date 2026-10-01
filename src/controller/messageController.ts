@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
-import Message from '../models/messageModel'; // Assuming you have a Message model
-import { Types } from 'mongoose';
+import { Request, Response } from "express";
+import Message from "../models/messageModel"; // Assuming you have a Message model
+import { Types } from "mongoose";
 
 // Save a message to the database
 
@@ -11,7 +11,7 @@ import { Types } from 'mongoose';
 //     // if (existingMessage) {
 //     //   return existingMessage;
 //     // }
-    
+
 //     console.log("Saving new message:", { sender, receiver, content });
 //     const newMessage = new Message({ sender, receiver, content, timestamp: new Date() });
 //     await newMessage.save();
@@ -22,10 +22,8 @@ import { Types } from 'mongoose';
 //   }
 // };
 
-
 // export const sendMessage = async (req: Request, res: Response):Promise<any> => {
 //   const { sender, receiver, content } = req.body;
-  
 
 //   if (!sender || !receiver || !content) {
 //     return res.status(400).json({ error: 'All fields (sender, receiver, content) are required' });
@@ -41,7 +39,6 @@ import { Types } from 'mongoose';
 //   }
 // };
 
-
 // Get recent chat messages for a specific user
 export const getRecentChatMessages = async (req: Request, res: Response) => {
   const { userId } = req.params;
@@ -50,13 +47,13 @@ export const getRecentChatMessages = async (req: Request, res: Response) => {
     const messages = await Message.find({
       $or: [{ sender: userId }, { receiver: userId }],
     })
-      .populate('sender', 'userName profileImage')
-      .populate('receiver', 'userName profileImage')
+      .populate("sender", "userName profileImage")
+      .populate("receiver", "userName profileImage")
       .sort({ timestamp: -1 });
 
     res.status(200).json(messages);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve messages' });
+    res.status(500).json({ error: "Failed to retrieve messages" });
   }
 };
 
@@ -69,28 +66,46 @@ export const getRecentChatUsers = async (req: Request, res: Response) => {
       $or: [{ sender: userId }, { receiver: userId }],
     })
       .sort({ timestamp: -1 })
-      .populate('sender', 'userName profileImage')
-      .populate('receiver', 'userName profileImage');
+      .populate("sender", "userName profileImage")
+      .populate("receiver", "userName profileImage");
 
-    const recentChats: { chatPartner: Types.ObjectId; latestMessage: string; timestamp: Date }[] = [];
-    const seenUsers = new Set();
+    const recentChats: {
+      chatPartner: any;
+      latestMessage: string;
+      timestamp: Date;
+    }[] = [];
+
+    const seenUsers = new Set<string>();
 
     messages.forEach((msg) => {
-      const chatPartner = msg.sender._id.toString() === userId ? msg.receiver : msg.sender;
+      // Skip messages where sender or receiver no longer exists
+      if (!msg.sender || !msg.receiver) {
+        return;
+      }
 
-      if (!seenUsers.has(chatPartner._id.toString())) {
+      const chatPartner =
+        msg.sender._id.toString() === userId ? msg.receiver : msg.sender;
+
+      const partnerId = chatPartner._id.toString();
+
+      if (!seenUsers.has(partnerId)) {
         recentChats.push({
           chatPartner,
           latestMessage: msg.content,
           timestamp: msg.timestamp,
         });
-        seenUsers.add(chatPartner._id.toString());
+
+        seenUsers.add(partnerId);
       }
     });
 
     res.status(200).json(recentChats);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch recent chat users' });
+    console.log(error, "error in get recent chat users");
+
+    res.status(500).json({
+      error: "Failed to fetch recent chat users",
+    });
   }
 };
 
@@ -102,15 +117,12 @@ export const getPersonalChat = async (req: Request, res: Response) => {
     const messages = await Message.find({
       $or: [
         { sender: user1, receiver: user2 },
-        { sender: user2, receiver: user1 }
-      ]
-    })
-      .sort({ timestamp: 1 }) // Sort in ascending order (oldest to newest)
-
+        { sender: user2, receiver: user1 },
+      ],
+    }).sort({ timestamp: 1 }); // Sort in ascending order (oldest to newest)
 
     res.status(200).json(messages);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve chat messages' });
+    res.status(500).json({ error: "Failed to retrieve chat messages" });
   }
 };
-

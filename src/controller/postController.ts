@@ -1,98 +1,126 @@
 import mongoose, { Types } from "mongoose";
-import { Response,Request } from "express";
+import { Response, Request } from "express";
 import { User } from "../models/userModel";
 import Post from "../models/postModel";
 import { HttpStatusCode } from "../constants/constat";
 
-
 export const createPost = async (
   req: Request | any,
-  res: Response
+  res: Response,
 ): Promise<Response | any> => {
- 
-    const { author } = req.params;
-    const { description } = req.body;
+  const { author } = req.params;
+  const { description } = req.body;
 
-    // Extract image URL from middleware
-    const media = req.cloudinaryMediaUrl;
+  // Extract image URL from middleware
+  const media = req.cloudinaryMediaUrl;
 
-    // Validate author ID format
-    if (!mongoose.isValidObjectId(author)) {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
-        status: HttpStatusCode.BAD_REQUEST,
-        message: "Invalid ID format for author",
-      });
-    }
-
-    // Check if the author exists
-    const user = await User.findById(author);
-    if (!user) {
-      return res.status(HttpStatusCode.NOT_FOUND).json({
-        status: HttpStatusCode.NOT_FOUND,
-        message: "Author not found",
-      });
-    }
-
-    // Ensure image content is provided
-    if (!media) {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
-        status: HttpStatusCode.BAD_REQUEST,
-        message: "Please provide an image or video.",
-      });
-    }
-
-    // Create a new post
-    const newPost = new Post({
-      author: new Types.ObjectId(author),
-      content:media,
-      description,
+  // Validate author ID format
+  if (!mongoose.isValidObjectId(author)) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: HttpStatusCode.BAD_REQUEST,
+      message: "Invalid ID format for author",
     });
+  }
 
-    await newPost.save();
-
-    // Update the user's posts array
-    await User.updateOne(
-      { _id: new Types.ObjectId(author) },
-      { $push: { posts: newPost._id } }
-    );
-
-    return res.status(HttpStatusCode.CREATED).json({
-      success: true,
-      status: HttpStatusCode.CREATED,
-      message: "Post created successfully",
-      data: newPost,
+  // Check if the author exists
+  const user = await User.findById(author);
+  if (!user) {
+    return res.status(HttpStatusCode.NOT_FOUND).json({
+      status: HttpStatusCode.NOT_FOUND,
+      message: "Author not found",
     });
-  
+  }
+
+  // Ensure image content is provided
+  if (!media) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: HttpStatusCode.BAD_REQUEST,
+      message: "Please provide an image or video.",
+    });
+  }
+
+  // Create a new post
+  const newPost = new Post({
+    author: new Types.ObjectId(author),
+    content: media,
+    description,
+  });
+
+  await newPost.save();
+
+  // Update the user's posts array
+  await User.updateOne(
+    { _id: new Types.ObjectId(author) },
+    { $push: { posts: newPost._id } },
+  );
+
+  return res.status(HttpStatusCode.CREATED).json({
+    success: true,
+    status: HttpStatusCode.CREATED,
+    message: "Post created successfully",
+    data: newPost,
+  });
 };
 
+export const getPost = async (req: Request, res: Response): Promise<any> => {
+  const { userId } = req.query;
 
-
-export const getPost = async(req:Request, res:Response):Promise<any> =>{
-
-    const posts = await Post.find()
-    .populate("author", "userName profileImage")
+  const posts = await Post.find()
+    .populate("author", "userName profileImage followers")
     .sort({ createdAt: -1 })
     .populate({
       path: "comments",
-      populate: [
-        { path: "author", select: "userName profileImage" },
-        
-      ],
+      populate: [{ path: "author", select: "userName profileImage" }],
     });
-    if(!posts){
-        return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND,message:'posts not fond'})
-    }
-    res.status(HttpStatusCode.OK).json({success:true,status:HttpStatusCode.OK,message:'get all posts',data:posts})
-}
+  if (!posts) {
+    return res
+      .status(HttpStatusCode.NOT_FOUND)
+      .json({ status: HttpStatusCode.NOT_FOUND, message: "posts not fond" });
+  }
 
+  const formattedPosts = posts.map((post) => {
+    const postObject = post.toObject();
 
+    const author = postObject.author as any;
 
-export const toggle_like = async (req: Request,res: Response): Promise<any> => {
+    const isFollowing = userId
+      ? author.followers?.some(
+          (followerId: any) => followerId.toString() === userId.toString(),
+        )
+      : false;
+
+    // Remove followers so they are NOT sent to frontend
+    delete author.followers;
+
+    return {
+      ...postObject,
+      author: {
+        ...author,
+        isFollowing,
+      },
+    };
+  });
+
+  res.status(HttpStatusCode.OK).json({
+    success: true,
+    status: HttpStatusCode.OK,
+    message: "get all posts",
+    data: formattedPosts,
+  });
+};
+
+export const toggle_like = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
   const { userId, postId } = req.body; // userId and postId from the request body
 
   // Validate the format of the IDs
   if (!mongoose.isValidObjectId(userId) || !mongoose.isValidObjectId(postId)) {
-    return res.status(HttpStatusCode.BAD_REQUEST).json({status:HttpStatusCode.BAD_REQUEST, message: "Invalid ID format." });
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      status: HttpStatusCode.BAD_REQUEST,
+      message: "Invalid ID format.",
+    });
   }
 
   // Start a transaction to ensure atomic updates
@@ -107,7 +135,10 @@ export const toggle_like = async (req: Request,res: Response): Promise<any> => {
     // If the post or user doesn't exist, abort the transaction
     if (!post || !user) {
       await session.abortTransaction();
-      return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND, message: "User or Post not found." });
+      return res.status(HttpStatusCode.NOT_FOUND).json({
+        status: HttpStatusCode.NOT_FOUND,
+        message: "User or Post not found.",
+      });
     }
 
     // Initialize user.likedPosts if not already initialized
@@ -120,16 +151,19 @@ export const toggle_like = async (req: Request,res: Response): Promise<any> => {
       // User has already liked the post, so unlike it
       post.likes = post.likes.filter((like) => like.toString() !== userId);
       user.likedPosts = user.likedPosts.filter(
-        (likedPostId) => likedPostId.toString() !== postId
+        (likedPostId) => likedPostId.toString() !== postId,
       );
-      
+
       // Save changes to post and user
       await post.save({ session });
       await user.save({ session });
 
       // Commit the transaction
       await session.commitTransaction();
-      return res.status(HttpStatusCode.OK).json({status:HttpStatusCode.OK, message: "Post unliked successfully." });
+      return res.status(HttpStatusCode.OK).json({
+        status: HttpStatusCode.OK,
+        message: "Post unliked successfully.",
+      });
     } else {
       // User has not liked the post, so like it
       post.likes.push(userId);
@@ -141,7 +175,10 @@ export const toggle_like = async (req: Request,res: Response): Promise<any> => {
 
       // Commit the transaction
       await session.commitTransaction();
-      return res.status(HttpStatusCode.OK).json({status:HttpStatusCode.OK, message: "Post liked successfully." });
+      return res.status(HttpStatusCode.OK).json({
+        status: HttpStatusCode.OK,
+        message: "Post liked successfully.",
+      });
     }
   } catch (error) {
     // If any error occurs, abort the transaction
@@ -154,53 +191,49 @@ export const toggle_like = async (req: Request,res: Response): Promise<any> => {
   }
 };
 
-
 //getVideoPosts
-
 
 // Utility function to determine if the content URL is a video
 const getMediaTypeFromUrl = (url: string) => {
-  const videoExtensions = ['mp4', 'avi', 'mov', 'mkv' ,];
-  const extension = url.split('.').pop()?.toLowerCase();
-  return videoExtensions.includes(extension!) ? 'video' : 'image'; // Default to 'image'
+  const videoExtensions = ["mp4", "avi", "mov", "mkv"];
+  const extension = url.split(".").pop()?.toLowerCase();
+  return videoExtensions.includes(extension!) ? "video" : "image"; // Default to 'image'
 };
 
 // Controller to fetch all video posts by checking content URL extension
-export const getVideoPosts = async (req: Request, res: Response):Promise<any> => {
-  
-    const posts = await Post.find()
+export const getVideoPosts = async (
+  req: Request,
+  res: Response,
+): Promise<any> => {
+  const posts = await Post.find()
     .populate("author", "userName profileImage")
     .sort({ createdAt: -1 })
     .populate({
       path: "comments",
-      populate: [
-        { path: "author", select: "userName profileImage" },
-        
-      ],
+      populate: [{ path: "author", select: "userName profileImage" }],
     });
-    
 
-    // Filter posts to include only videos based on URL file extension
-    const videoPosts = posts.filter((post) => getMediaTypeFromUrl(post.content) === 'video');
+  // Filter posts to include only videos based on URL file extension
+  const videoPosts = posts.filter(
+    (post) => getMediaTypeFromUrl(post.content) === "video",
+  );
 
-    if (videoPosts.length === 0) {
-      return res.status(404).json({ message: 'No video posts found' });
-    }
+  if (videoPosts.length === 0) {
+    return res.status(404).json({ message: "No video posts found" });
+  }
 
-    res.status(200).json(videoPosts);
-  
+  res.status(200).json(videoPosts);
 };
 
-
 //save Post
-export const postSave = async(req:Request, res:Response):Promise<any> => {
-  const {postId } = req.params
+export const postSave = async (req: Request, res: Response): Promise<any> => {
+  const { postId } = req.params;
 
-  const post = await Post.findById(postId)
+  const post = await Post.findById(postId);
 
-  if(!post){
-    return res.status(HttpStatusCode.NOT_FOUND).json({status:HttpStatusCode.NOT_FOUND,message:"post not found"})
+  if (!post) {
+    return res
+      .status(HttpStatusCode.NOT_FOUND)
+      .json({ status: HttpStatusCode.NOT_FOUND, message: "post not found" });
   }
-  
-
-}
+};
